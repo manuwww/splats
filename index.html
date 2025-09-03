@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3DGS</title>
+    <!-- Tailwind CSS CDN für einfaches Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Grundlegende Stile für HTML und Body */
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        font-family: "Inter", sans-serif; /* Empfohlene Schriftart */
+        background-color: #f3f4f6; /* Sehr heller Hintergrund */
+      }
+
+      /* Stil für den Haupt-Header / Info-Box */
+      #main-header {
+        position: fixed; /* Header bleibt beim Scrollen oben */
+        top: 0;
+        left: 0;
+        width: 100%;
+        background-color: #1a202c; /* Dunkler Hintergrund für die Info-Box */
+        color: white;
+        padding: 1rem;
+        z-index: 20; /* Stellt sicher, dass der Header über allem liegt */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Leichter Schatten für die Info-Box */
+        text-align: center;
+      }
+
+      /* Container für die Supersplat-Modelle, der unter dem Header beginnt */
+      #viewer-container {
+        width: 100%;
+        /* min-height wird durch JS gesetzt, basierend auf Header-Höhe */
+        margin-top: 0; /* Abstand zum Header entfernt */
+        overflow-y: auto; /* Aktiviert vertikales Scrollen */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0; /* Horizontaler Padding entfernt für Full Length */
+        box-sizing: border-box;
+      }
+
+      /* Stil für jeden einzelnen Modellabschnitt */
+      .model-section {
+        width: 100%; /* Volle Breite */
+        height: 95vh; /* Höhe des Containers nochmals erhöht (von 90vh auf 95vh) */
+        margin-bottom: 40px; /* Abstand zwischen den Modellen */
+        background-color: #ffffff; /* Weißer Hintergrund für jeden Abschnitt */
+        display: flex;
+        flex-direction: column;
+        border: none; /* Keine abgerundeten Kanten und kein Rahmen */
+      }
+      .model-section:last-child {
+        margin-bottom: 20px; /* Etwas Platz am Ende der Liste */
+      }
+
+      /* Stil für den Titel jedes Modells */
+      .model-title {
+        @apply text-gray-800 text-xl md:text-2xl font-bold p-4 bg-gray-200;
+        text-align: center;
+        /* Keine abgerundeten Kanten */
+      }
+
+      /* Stil für den Iframe selbst */
+      .supersplat-iframe {
+        width: 100%;
+        height: 100%; /* Iframe nimmt die volle Höhe seines übergeordneten model-section ein */
+        border: none; /* Entfernt den Standard-Iframe-Rahmen */
+        /* Keine abgerundeten Kanten */
+      }
+
+      /* Responsive Anpassungen für kleinere Bildschirme */
+      @media (max-width: 768px) {
+        #main-header {
+          padding: 1.75rem;
+        }
+        #main-header h1 {
+          font-size: 1.5rem;
+        }
+        #main-header p {
+          font-size: 0.75rem;
+        }
+        #viewer-container {
+          /* min-height wird durch JS gesetzt */
+          margin-top: 0; /* Abstand zum Header entfernt auf Mobilgeräten */
+          padding: 0; /* Horizontaler Padding entfernt für Full Length auf Mobilgeräten */
+        }
+        .model-section {
+          height: 120vh; /* Anpassung der Höhe für kleinere Bildschirme (von 80vh auf 90vh) */
+          margin-bottom: 0px;
+          width: 100%; /* Volle Breite auf Mobilgeräten */
+        }
+        .model-title {
+          @apply text-lg p-3;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Haupt-Header / Info-Box -->
+    <header id="main-header">
+      <h1 class="text-3xl font-bold">3DGS Experiments</h1>
+      <p class="text-base text-gray-400">
+        Scroll down to see all models. Tools used: iphone, LUMA Ai, Postshot,
+        Supersplat, RunwayML, Pollo Ai.
+      </p>
+    </header>
+
+    <!-- Container für die scrollbaren Supersplat-Modelle -->
+    <div id="viewer-container">
+      <!-- Modellabschnitte werden hier dynamisch per JavaScript hinzugefügt -->
+    </div>
+
+    <script>
+      // Array zum Speichern Ihrer Supersplat Viewer URLs und deren Titel
+      const supersplatModels = [
+        {
+          url: "https://superspl.at/s?id=3e44a2a6",
+          title: "BANKSY SNAKE, iphone, Postshot, Supersplat",
+        },
+        {
+          url: "https://superspl.at/s?id=1dd10959",
+          title:
+            "THOMAS OTT Exhibition Cartoon Museum, iphone, Postshot, Supersplat",
+        },
+        {
+          url: "https://superspl.at/s?id=e80adc52",
+          title: "BOY IN A ROOM, AI generated 3DGS, Postshot, Supersplat",
+        },
+        {
+          url: "https://superspl.at/s?id=d884569b",
+          title: "IKEA PLAYGROUND,iphone, Postshot, Supersplat",
+        },
+        {
+          url: "https://superspl.at/s?id=256a801e",
+          title: "TREE KASK Ghent, iphone, Postshot, Supersplat",
+        },
+      ];
+
+      const viewerContainer = document.getElementById("viewer-container");
+      const mainHeader = document.getElementById("main-header");
+
+      /**
+       * Erstellt und fügt dynamisch einen Iframe-Abschnitt für jedes Modell hinzu.
+       */
+      function renderModels() {
+        if (supersplatModels.length === 0) {
+          viewerContainer.innerHTML =
+            '<p class="text-gray-600 text-center text-lg mt-20">Keine Supersplat-Modelle zum Anzeigen.</p>';
+          return;
+        }
+
+        supersplatModels.forEach((model) => {
+          // Erstellt einen Div für jeden Modellabschnitt
+          const modelSection = document.createElement("div");
+          modelSection.className = "model-section"; // Wendet Styling-Klassen an
+
+          // Erstellt ein Titel-Element für das Modell
+          const modelTitle = document.createElement("h2");
+          modelTitle.className = "model-title";
+          modelTitle.textContent = model.title;
+
+          // Erstellt den Iframe für den Supersplat Viewer
+          const supersplatIframe = document.createElement("iframe");
+          supersplatIframe.className = "supersplat-iframe"; // Wendet Styling-Klasse an
+          supersplatIframe.src = model.url;
+          supersplatIframe.allowFullscreen = true; // Erlaubt den Vollbildmodus innerhalb jedes Iframes
+          supersplatIframe.loading = "lazy"; // Verbessert die Leistung durch Lazy Loading von Iframes
+
+          // Fügt Titel und Iframe zum Modellabschnitt hinzu
+          modelSection.appendChild(modelTitle);
+          modelSection.appendChild(supersplatIframe);
+
+          // Fügt den vollständigen Modellabschnitt zum Haupt-Viewer-Container hinzu
+          viewerContainer.appendChild(modelSection);
+        });
+      }
+
+      // Rendert alle Modelle, wenn das DOM vollständig geladen ist
+      document.addEventListener("DOMContentLoaded", () => {
+        renderModels();
+
+        // Anpassung des oberen Rands des Viewer-Containers basierend auf der tatsächlichen Header-Höhe
+        const headerHeight = mainHeader.offsetHeight;
+        viewerContainer.style.marginTop = `${headerHeight}px`;
+        viewerContainer.style.minHeight = `calc(100vh - ${headerHeight}px)`;
+      });
+    </script>
+  </body>
+</html>
